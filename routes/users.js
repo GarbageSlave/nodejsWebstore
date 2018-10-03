@@ -4,7 +4,10 @@ var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var db = require('../database/db');
 var bcrypt = require('bcryptjs');
-const saltRounds = 11;
+const saltRounds = 11; 
+
+var data;
+
 
 // var User = require('../models/user');
 
@@ -18,23 +21,82 @@ router.get('/login', function (req, res) {
 	res.render('login');
 });
 
+// Webstore
+router.get('/webstore', function(req, res) {
+	res.render('webstore');
+});
+router.get('/clear', function(req, res){
+	cart_data = req.session.cart = {};
+	db.connection.getConnection(function(err, connection){
+		connection.query('SELECT `product_id`,`title`,`description` FROM `products`', function(err, rows, fields){
+			if (err) throw err;
+			var error_msg = "You've flushed your cart!";
+			res.render('webstore', {rows:rows, error_msg});
+		})
+	})
+})
+var cart_data, cart = {};
+
+router.post('/addToCart', function(req, res){
+	db.connection.getConnection(function(err, connection){
+		connection.query('SELECT `product_id`,`title`,`description` FROM `products`', function(err, rows, fields){
+		if (err) throw err;
+		cart = req.session.cart;
+		if (!cart) {
+			cart = req.session.cart = {}
+		}
+	
+		var id = req.body.id;
+		var count = parseInt(req.body.count, 10);
+
+		cart[id] = (cart[id] || 0) + count;
+
+		var ids = Object.keys(cart);
+		if (ids.length > 0) {
+			connection.query('SELECT * FROM products WHERE product_id IN (' + ids + ')', function (err, result) {
+				if (err) throw err;
+				cart_data = result;
+				res.render('webstore', {rows: rows, data: data, cart_data: result, cart: cart});
+			});
+		} else {
+			res.render('webstore', {rows: rows, data: data, cart_data: cart_data});
+		}
+	});
+	});
+});
 // Register User
 router.post('/register', function (req, res) {
 	var userData = { 
-	 'id': null,
-	 'username': req.body.username,
+	 'user_id': null,
+	 'firstname': req.body.firstname,
+	 'prefix': req.body.prefix,
+	 'lastname': req.body.lastname,
+	 'email': req.body.email,
 	 'password': req.body.password,
-	 'name': req.body.name,
-	 'email': req.body.email
+	 'address' : req.body.address,
+	 'number' : req.body.number,
+	 'addition' : req.body.additon,
+	 'postal' : req.body.postal,
+	 'city' : req.body.city,
+	 'country' : req.body.country,
+	 'telephone' : req.body.telephone,
+	 'role' : 'user'
 	}
 
 	// Validation
-	req.checkBody('name', 'Name is required').notEmpty();
+	req.checkBody('firstname', 'Name is required').notEmpty();
+	// req.checkBody('prefix', '').notEmpty();
+	req.checkBody('lastname', 'Last name is required').notEmpty();
 	req.checkBody('email', 'Email is required').notEmpty();
 	req.checkBody('email', 'Email is not valid').isEmail();
-	req.checkBody('username', 'Username is required').notEmpty();
 	req.checkBody('password', 'Password is required').notEmpty();
 	req.checkBody('password2', 'Passwords do not match').equals(req.body.password);
+	req.checkBody('address', 'Address is required').notEmpty();
+	req.checkBody('number', 'A number is required').notEmpty();
+	// req.checkBody('addition', '').notEmpty();
+	req.checkBody('postal', 'Postal is required').notEmpty();
+	req.checkBody('city', 'Country is required').notEmpty();
+	req.checkBody('telephone', 'A telephone number is required').notEmpty();
 
 	var errors = req.validationErrors();
 
@@ -44,13 +106,13 @@ router.post('/register', function (req, res) {
 		});
 	}
 	else {
-		//checking for email and username are already taken
+		//checking for email and telephone number if they are already taken
 		db.connection.getConnection(function(err, connection){
 			if (err) throw err 
 				
 			else{
-				// Checkt of de username al bestaat in de database
-				connection.query('SELECT `username` FROM `users` WHERE username = "' + userData['username'] + '" ', function(err, rows, fields){
+				// Checkt of de telephone number al bestaat in de database
+				connection.query('SELECT `telephone` FROM `users` WHERE telephone = "' + userData['telephone'] + '" ', function(err, rows, fields){
 					if (err) throw err;
 					// Checkt of de terugkomende object leeg is, dan bestaat de user nog niet
 					else if (!rows.length){
@@ -83,7 +145,7 @@ router.post('/register', function (req, res) {
 						});
 					//Het terugkomende object heeft inhoud dus bestaat de username al in de database
 					} else if (rows.length){
-						req.flash('error_msg', 'Your chosen username already exists, please try another one');
+						req.flash('error_msg', 'Your given phonenumber is already in use, please try another one');
 						res.redirect('/users/register');
 					}
 				});
@@ -91,19 +153,20 @@ router.post('/register', function (req, res) {
 		});
 	}
 });
+// The login 
 passport.use('local-login', new LocalStrategy({
 
-	usernameField: 'username',
+	usernameField: 'email',
   
 	passwordField: 'password',
   
 	passReqToCallback: true //passback entire req to call back
-  } , function (req, username, password, done){
-		if(!username || !password ){ 
+  } , function (req, email, password, done){
+		if(!email || !password ){ 
 			return done(null, false, req.flash('error_msg','All fields are required.')); 
 		}
 		db.connection.getConnection(function(err, connection){
-			connection.query("select * from users where username = ?", [username], function(err, rows){
+			connection.query("select * from users where email = ?", [email], function(err, rows){
 	
 			// console.log(rows);
 	
@@ -127,12 +190,12 @@ passport.use('local-login', new LocalStrategy({
 }));
 
 passport.serializeUser(function(user, done){
-	done(null, user.id);
+	done(null, user.user_id);
 });
 
-passport.deserializeUser(function(id, done){
+passport.deserializeUser(function(user_id, done){
 	db.connection.getConnection(function(err, connection){
-		connection.query("select * from users where id = "+ id, function (err, rows){
+		connection.query("select * from users where user_id = "+ user_id, function (err, rows){
 			done(err, rows[0], connection.release());
 		});
 	});
@@ -146,8 +209,8 @@ router.post('/login',
 
 router.get('/logout', function (req, res) {
 	req.logout();
-
 	req.flash('success_msg', 'You are logged out');
+	req.session.destroy();
 
 	res.redirect('/users/login');
 });

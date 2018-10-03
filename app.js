@@ -12,6 +12,7 @@ var LocalStrategy = require('passport-local').Strategy;
 var routes = require('./routes/index');
 var users = require('./routes/users');
 
+
 // Init App
 var app = express();
 
@@ -20,17 +21,24 @@ app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', exphbs({defaultLayout:'layout'}));
 app.set('view engine', 'handlebars');
 
+
 // BodyParser Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
+
 // Set Static Folder
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static(__dirname + 'public/images'));
+app.use('/js', express.static(__dirname + 'public/js'));
+
 
 // Express Session
 app.use(session({
     secret: 'secret',
+    cookie: { maxAge: 6000},
     saveUninitialized: true,
     resave: true
 }));
@@ -69,10 +77,9 @@ app.use(function (req, res, next) {
   next();
 });
 
-
-
 app.use('/', routes);
 app.use('/users', users);
+
 
 // Set Port
 app.set('port', (process.env.PORT || 3000));

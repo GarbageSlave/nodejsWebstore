@@ -5,7 +5,7 @@ var connection = mysql.createPool({
     host:'localhost',
     user:'root',
     password:'',
-    database:'user',
+    database:'web_database',
     debug: false,
     multipleStatements: true
 });

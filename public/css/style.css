@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css?family=Inconsolata');
 /* Space out content a bit */
 body {
   padding-top: 20px;
   padding-bottom: 20px;
+  font-family: 'Inconsolata', monospace;
 }
 
 /* Everything but the jumbotron gets side spacing for mobile first views */
@@ -85,3 +87,32 @@ body {
 footer{
   margin-top:40px;
 }
+
+.smallImg {
+  /* width: 100%; */
+  /* max-width: 200px; */
+  /* height: 100%; */
+  max-height: 200px;
+}
+.pictureText {
+  text-shadow:
+  -0.5px -0.5px 0 #000,
+  0.5px -0.5px 0 #000,
+  -0.5px 0.5px 0 #000,
+  0.5px 0.5px 0 #000;
+}
+.fade {
+  opacity: 1;
+  transition: opacity .25s ease-in-out;
+  -moz-transition: opacity .25s ease-in-out;
+  -webkit-transition: opacity .25s ease-in-out;
+  }
+
+  .fade:hover {
+     opacity: 0.5;
+     }
+  table{
+    margin-left: 10%;
+    margin-right: 10%;
+    width: 80% !important;
+  }

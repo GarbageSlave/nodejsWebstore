@@ -1,0 +1,52 @@
+<div class="row">
+    <div class="col-12">
+        {{#if cart_data}}
+        <h4>Cart</h4>
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Description</th>
+                <th scope="col">Price</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{#each cart_data as |cart_item cart_itemId|}}
+            <tr>
+                <th scope="row">{{{cart_item.title}}}</th >
+                <td>{{{cart_item.description}}}</td>
+                <td>${{{cart_item.price}}}</td>
+            </tr>
+            {{/each}}
+            </tbody>
+        </table>
+        <a type="button" class="btn btn-danger" href="/users/clear">Clear cart</a>
+        <a type="button" class="btn btn-success" href="/users/checkout">Checkout</a>
+        {{else}}
+        {{/if}}
+    <h2 class="page-header">Webstore!</h2>
+    </div>
+        <div class="col-1"></div>
+            <div class="col-10">
+                <div class="row">
+                {{#each rows}}
+                <div class="col-6">
+                    <div class="card bg-dark text-white pictureText">
+                        <img class="card-img smallImg" src="/images/{{{this.product_id}}}.png"  alt="Card image">
+                            <div class="card-img-overlay">
+                                <h3 class="card-title">{{{this.title}}}</h3>
+                                <p class="card-text">{{{this.description}}}</p>
+                                <form method="POST" action="/users/addToCart">
+                                    <input type='text' name='count' value='1'>
+                                    <input type='hidden' name='id' value='{{{this.product_id}}}'>
+                                    <input type='submit' class='item-select' name='add' id='{{{this.product_id}}}' value='Add to cart'>
+                                </form>
+                            </div>
+                    </div>
+                    <br>
+                </div>
+                {{/each}}
+                </div>
+            </div>
+        <div class="col-1"></div>
+</div>
