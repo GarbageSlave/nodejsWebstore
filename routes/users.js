@@ -30,10 +30,25 @@ router.get('/clear', function(req, res){
 	db.connection.getConnection(function(err, connection){
 		connection.query('SELECT `product_id`,`title`,`description` FROM `products`', function(err, rows, fields){
 			if (err) throw err;
-			var error_msg = "You've flushed your cart!";
-			res.render('webstore', {rows:rows, error_msg});
-		})
-	})
+			// var error_msg = "You've flushed your cart!";
+			res.render('webstore', {rows:rows});
+		});
+	});
+});
+
+router.get('/checkout', function(req, res){
+	db.connection.getConnection(function(err, connection){
+		if (err) throw err;
+		var cart = req.session.cart;
+			if (cart) {
+				var ids = Object.keys(cart);
+				connection.query('SELECT * FROM `products` WHERE `product_id` IN (' + ids + ')', function (err, result) {
+					if (err) throw err;
+					cart_data = result;
+					res.render('checkout', {cart_data: result, cart: cart});
+				});
+			}
+	});
 })
 var cart_data, cart = {};
 

@@ -38,7 +38,7 @@ app.use('/js', express.static(__dirname + 'public/js'));
 // Express Session
 app.use(session({
     secret: 'secret',
-    cookie: { maxAge: 6000},
+    // cookie: { maxAge: 6000},
     saveUninitialized: true,
     resave: true
 }));
